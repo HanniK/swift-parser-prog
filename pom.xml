@@ -15,7 +15,7 @@
 		<scala.tools.version>2.15.2</scala.tools.version>
 		<!-- Put the Scala version of the cluster -->
 		<scala.version>2.11.7</scala.version>
-		<prowide.core.version>SRU2013-7.3</prowide.core.version>
+		<prowide.core.version>SRU2015-7.7</prowide.core.version>
 		<scala.maven.plugin.version>3.2.2</scala.maven.plugin.version>
 		<spark.core.version>1.6.0</spark.core.version>
 		<maven.surefire.version>2.19.1</maven.surefire.version>
@@ -23,16 +23,34 @@
 	</properties>
 	
 	<!-- repository to add org.apache.spark -->
-	<repositories>
-		<repository>
-			<id>cloudera-repo-releases</id>
-			<url>https://repository.cloudera.com/artifactory/repo/</url>
-		</repository>
-		<repository>
-		    <id>central</id>
-		    <url>http://repo1.maven.org/maven2/</url>
-		</repository>
-	</repositories>
+	 <repositories>
+                <repository>
+                    <!-- Central Repository -->
+                    <id>central</id>
+                    <url>http://repo1.maven.org/maven2/</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </repository>
+                <repository>
+                    <!-- Cloudera Repository -->
+                    <id>cloudera</id>
+                    <url>https://repository.cloudera.com/artifactory/cloudera-repos</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>true</enabled>
+                   </snapshots>
+                </repository>
+				<repository>
+					<id>prowideCore</id>
+					<url>https://oss.sonatype.org/content/repositories/releases/com/prowidesoftware/pw-swift-core/SRU2015-7.7/</url>
+				 </repository>
+    </repositories>
 
 	<build>
 		<sourceDirectory>src/main/scala</sourceDirectory>

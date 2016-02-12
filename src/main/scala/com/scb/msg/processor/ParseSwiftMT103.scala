@@ -11,7 +11,7 @@ import java.io._
 import java.util.stream.Collectors
 import org.apache.commons.lang.StringUtils
 
-object ParseExample {
+object ParseSwiftMT103 {
 
   def isValidMT103Message(message: com.prowidesoftware.swift.model.mt.AbstractMT) = {
     message != null && message.isType(103)
