@@ -12,11 +12,11 @@
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 		<encoding>UTF-8</encoding>
-		<scala.tools.version>2.15.2</scala.tools.version>
+		<scala.tools.version>2.10</scala.tools.version>
 		<!-- Put the Scala version of the cluster -->
-		<scala.version>2.11.7</scala.version>
+		<scala.version>2.10.6</scala.version>
 		<prowide.core.version>SRU2015-7.7</prowide.core.version>
-		<scala.maven.plugin.version>3.2.2</scala.maven.plugin.version>
+		<scala.maven.plugin.version>3.1.3</scala.maven.plugin.version>
 		<spark.core.version>1.6.0</spark.core.version>
 		<maven.surefire.version>2.19.1</maven.surefire.version>
 		<maven.assembly.version>2.6</maven.assembly.version>
@@ -24,17 +24,6 @@
 	
 	<!-- repository to add org.apache.spark -->
 	 <repositories>
-                <repository>
-                    <!-- Central Repository -->
-                    <id>central</id>
-                    <url>http://repo1.maven.org/maven2/</url>
-                    <releases>
-                        <enabled>true</enabled>
-                    </releases>
-                    <snapshots>
-                        <enabled>true</enabled>
-                    </snapshots>
-                </repository>
                 <repository>
                     <!-- Cloudera Repository -->
                     <id>cloudera</id>
@@ -46,10 +35,6 @@
                         <enabled>true</enabled>
                    </snapshots>
                 </repository>
-				<repository>
-					<id>prowideCore</id>
-					<url>https://oss.sonatype.org/content/repositories/releases/com/prowidesoftware/pw-swift-core/SRU2015-7.7/</url>
-				 </repository>
     </repositories>
 
 	<build>
@@ -69,12 +54,16 @@
 						</goals>
 						<configuration>
 							<args>
+								<arg>-make:transitive</arg>
 								<arg>-dependencyfile</arg>
 								<arg>${project.build.directory}/.scala_dependencies</arg>
 							</args>
 						</configuration>
 					</execution>
 				</executions>
+				<configuration>
+		          <scalaVersion>${scala.version}</scalaVersion>
+		        </configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -109,6 +98,25 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+		        <groupId>org.codehaus.mojo</groupId>
+		        <artifactId>build-helper-maven-plugin</artifactId>
+		        <version>1.7</version>
+		        <executions>
+		          <execution>
+		            <id>add-source</id>
+		            <phase>generate-sources</phase>
+		            <goals>
+		              <goal>add-source</goal>
+		            </goals>
+		            <configuration>
+		              <sources>
+		                <source>resources</source>
+		              </sources>
+		            </configuration>
+		          </execution>
+		        </executions>
+		      </plugin>
 		</plugins>
 	</build>
 
@@ -121,7 +129,12 @@
 		</dependency>
 		<dependency>
 			<groupId>org.apache.spark</groupId>
-			<artifactId>spark-core_2.11</artifactId>
+			<artifactId>spark-core_2.10</artifactId>
+			<version>${spark.core.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.spark</groupId>
+			<artifactId>spark-hive_2.10</artifactId>
 			<version>${spark.core.version}</version>
 		</dependency>
 		<dependency>

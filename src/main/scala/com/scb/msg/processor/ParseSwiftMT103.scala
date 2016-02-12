@@ -56,6 +56,16 @@ object ParseSwiftMT103 {
     val jobName = "Parser-MT103"
     val conf = (new SparkConf().setMaster("local[1]").setAppName(jobName).set("spark.executor.memory", "1g"))
     val sc = new SparkContext(conf)
+
+    //    val sqlContext = new org.apache.spark.sql.SQLContext(sc)
+    //    import sqlContext._
+    //    // SQL statements can be run by using the sql methods provided by sqlContext.
+    //    val results = sqlContext.sql("SELECT name FROM swift")
+
+    // The results of SQL queries are SchemaRDDs and support all the normal RDD operations.
+    // The columns of a row in the result can be accessed by ordinal.
+    //    results.map(t => "Name: " + t(0)).collect().foreach(println)
+
     val pathToFiles = arg(0)
     val outputPath = arg(1)
     val newLine = sys.props("line.separator")
@@ -79,5 +89,7 @@ object ParseSwiftMT103 {
         }
       })
     writer.close()
+
+    sc.stop()
   }
 }
