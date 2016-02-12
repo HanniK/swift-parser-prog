@@ -1,7 +1,7 @@
 # swift-parser-prog
 
 Prerequisite for installing this project on local
-- scala 2.11.7
+- scala 2.10.4
 - maven 
 - jdk 1.8
 Two jar files jaxb-api-2.2.4u4 jaxb-impl-2.2.4u4 that is required for pw-swift-core SRU2015-7.7 need to be installed in local repository. There is no public repository available for these two jar files.
