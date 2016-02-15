@@ -18,24 +18,21 @@
 // scalastyle:off println
 package com.scb.msg.processor
 import com.google.common.io.{ ByteStreams, Files }
-
 import java.io.File
-
+import com.prowidesoftware.swift.model.mt.mt1xx.MT103
+import com.prowidesoftware.swift.model.mt.AbstractMT
 import org.apache.spark.{ SparkConf, SparkContext }
 import org.apache.spark.sql._
 import org.apache.spark.sql.hive.HiveContext
+import org.apache.log4j.Logger
+import org.apache.commons.lang.exception.ExceptionUtils
 
 object HiveFromSpark {
   case class Record(key: Int, value: String)
-  //
-  //  // Copy kv1.txt file from classpath to temporary directory
-  //  val kv1Stream = HiveFromSpark.getClass.getResourceAsStream("/kv1.txt")
-  //  val kv1File = File.createTempFile("kv1", "txt")
-  //  kv1File.deleteOnExit()
-  //  ByteStreams.copy(kv1Stream, Files.newOutputStreamSupplier(kv1File))
 
   def main(args: Array[String]) {
-    val sparkConf = new SparkConf().setMaster("local").setAppName("HiveFromSpark").set("spark.executor.memory", "1g")
+    var logger = Logger.getLogger(this.getClass())
+    val sparkConf = new SparkConf().setAppName("HiveFromSpark")
     val sc = new SparkContext(sparkConf)
 
     // A hive context adds support for finding tables in the MetaStore and writing queries
@@ -46,32 +43,62 @@ object HiveFromSpark {
     import hiveContext.implicits._
     import hiveContext.sql
 
-    // Queries are expressed in HiveQL
-    println("Result of 'SELECT *': ")
-    sql("SELECT * FROM cers.swift").collect().foreach(println)
+    val dfSwift = sql("SELECT * FROM cers.swift").toDF()
 
-    //    // Aggregation queries are also supported.
-    //    val count = sql("SELECT COUNT(*) FROM src").collect().head.getLong(0)
-    //    println(s"COUNT(*): $count")
-    //
-    //    // The results of SQL queries are themselves RDDs and support all normal RDD functions.  The
-    //    // items in the RDD are of type Row, which allows you to access each column by ordinal.
-    //    val rddFromSql = sql("SELECT key, value FROM src WHERE key < 10 ORDER BY key")
-    //
-    //    println("Result of RDD.map:")
-    //    val rddAsStrings = rddFromSql.map {
-    //      case Row(key: Int, value: String) => s"Key: $key, Value: $value"
-    //    }
-    //
-    //    // You can also register RDDs as temporary tables within a HiveContext.
-    //    val rdd = sc.parallelize((1 to 100).map(i => Record(i, s"val_$i")))
-    //    rdd.toDF().registerTempTable("records")
-    //
-    //    // Queries can then join RDD data with data stored in Hive.
-    //    println("Result of SELECT *:")
-    //    sql("SELECT * FROM records r JOIN src s ON r.key = s.key").collect().foreach(println)
+    sql("USE cers")
+    sql("CREATE TABLE IF NOT EXISTS fine_grain_swift (data String)")
+
+    dfSwift.collect().foreach { x =>
+      var message: AbstractMT = null;
+      try {
+        message = AbstractMT.parse(x.getString(0).replaceAll(" ", "\n"))
+        if (isValidMT103Message(message)) {
+          val mt103: MT103 = message.asInstanceOf[MT103]
+          val processedStr = parseMessageDetail(mt103, getDirection(mt103))
+          logger.info("Processed string is: " + processedStr)
+          sc.parallelize(List(processedStr)).toDF().registerTempTable("records")
+          sql("INSERT INTO table cers.fine_grain_swift select r.* from records r ")
+        }
+      } catch { case t: Throwable => logger.error(" Unknown message or file format " + ExceptionUtils.getStackTrace(t)); }
+    }
+
+    val rdd = sql("SELECT * FROM cers.fine_grain_swift")
+    rdd.toDF().collect().foreach(println)
 
     sc.stop()
   }
+
+  def isValidMT103Message(message: com.prowidesoftware.swift.model.mt.AbstractMT) = {
+    message != null && message.isType(103)
+  }
+
+  def getDirection(mt103: com.prowidesoftware.swift.model.mt.mt1xx.MT103) = {
+    val direction = if (mt103.isOutput()) "Output" else "Input"
+    direction
+  }
+
+  def parseMessageDetail(mt103: MT103, direction: String) = {
+    concat(safeStr(mt103.getSender()),
+      safeStr(mt103.getField53A().getBIC()),
+      safeStr(mt103.getField53D().getNameAndAddress()),
+      safeStr(mt103.getField59().getNameAndAddress()),
+      safeStr(mt103.getField57A().getBIC()),
+      safeStr(mt103.getField59F().getNameAndAddress1()),
+      safeStr(mt103.getField32A().getAmount()),
+      safeStr(mt103.getField32A().getCurrency()),
+      safeStr(mt103.getField70().getComponent1()),
+      direction)
+  }
+
+  def safeStr(str: Object) = {
+    try {
+      str.toString()
+    } catch {
+      case t: Throwable => " ";
+    }
+  }
+
+  def concat(ss: String*) = ss filter (_.nonEmpty) mkString "\t "
 }
 // scalastyle:on println
+
