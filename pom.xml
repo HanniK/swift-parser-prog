@@ -131,11 +131,23 @@
 			<groupId>org.apache.spark</groupId>
 			<artifactId>spark-core_2.10</artifactId>
 			<version>${spark.core.version}</version>
+			<exclusions>
+		        <exclusion>
+		          <groupId>org.scala-lang</groupId>
+		          <artifactId>*</artifactId>
+		        </exclusion>
+		    </exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.spark</groupId>
 			<artifactId>spark-hive_2.10</artifactId>
 			<version>${spark.core.version}</version>
+			<exclusions>
+		        <exclusion>
+		          <groupId>org.scala-lang</groupId>
+		          <artifactId>*</artifactId>
+		        </exclusion>
+		    </exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.prowidesoftware</groupId>
