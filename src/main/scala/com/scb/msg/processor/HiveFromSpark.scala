@@ -51,11 +51,10 @@ object HiveFromSpark {
     dfSwift.collect().foreach { x =>
       var message: AbstractMT = null;
       try {
-        message = AbstractMT.parse(x.getString(0).replaceAll(" ", "\n"))
+        message = AbstractMT.parse(x.getString(0).replaceAll("\t", "\n"))
         if (isValidMT103Message(message)) {
           val mt103: MT103 = message.asInstanceOf[MT103]
-          val processedStr = parseMessageDetail(mt103, getDirection(mt103))
-          logger.info("Processed string is: " + processedStr)
+          val processedStr: String = parseMessageDetail(mt103, getDirection(mt103))
           sc.parallelize(List(processedStr)).toDF().registerTempTable("records")
           sql("INSERT INTO table cers.fine_grain_swift select r.* from records r ")
         }
