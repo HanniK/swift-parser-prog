@@ -38,12 +38,17 @@ object SparkStreamH {
     val sparkConf = new SparkConf().setAppName("SparkStream")
     val ssc = new StreamingContext(sparkConf, Minutes(1))
     val dataStream = ssc.textFileStream("hdfs://xsgscbapp1a.scb.intra.theoptimum.net:9000/user/hive/warehouse/cers.db/swift/")
-    val sc = ssc.sparkContext
-    val hiveContext = new HiveContext(sc)
+    //By applying windowed computations on streams with Spark Streaming we can execute transformations over sliding windows of data. 
+    //In windowing computation we talk about window length and sliding interval. 
+    //Window length is the duration and sliding interval is the interval the window operation is performed.
+    //With each slide over the DStream, the RDDs within the window are combined and operated on.
+    val swiftWindowStream = dataStream.window(Minutes(1), Minutes(1))
+
+    val hiveContext = new HiveContext(ssc.sparkContext)
     import hiveContext.implicits._
     import hiveContext.sql
 
-    dataStream.foreachRDD { rdd =>
+    swiftWindowStream.foreachRDD { rdd =>
       rdd.filter(Swift.isMT103).map(Swift.convertSwift).toDF().registerTempTable("records")
       sql("INSERT INTO table cers.fine_grained_mt103 select r.* from records r ")
     }
