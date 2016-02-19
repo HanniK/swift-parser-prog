@@ -45,7 +45,7 @@ object SparkStreamH {
 
     dataStream.foreachRDD { rdd =>
       rdd.filter(Swift.isMT103).map(Swift.convertSwift).toDF().registerTempTable("records")
-      sql("INSERT INTO table cers.fine_grain_swift select r.* from records r ")
+      sql("INSERT INTO table cers.fine_grained_mt103 select r.* from records r ")
     }
 
     ssc.start()

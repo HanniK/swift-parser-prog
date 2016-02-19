@@ -4,14 +4,23 @@ import com.prowidesoftware.swift.model.mt.AbstractMT
 import org.apache.commons.lang.exception.ExceptionUtils
 import org.apache.log4j.Logger
 
-case class Swift(msg_detail: String)
+case class Swift(sender_name: String, sender_bic: String, sender_country: String, beneficiary_name: String, beneficiary_bic: String, beneficiary_country: String, currency: String, amount: String, purpose: String, payment_direction: String)
 
 object Swift {
   val logger = Logger.getLogger(this.getClass())
 
-  def convertSwift(swift: String): String = {
+  def convertSwift(swift: String): Swift = {
     val mt103: MT103 = MT103.parse(swift.replaceAll("\t", "\n"))
-    parseMessageDetail(mt103, getDirection(mt103))
+    Swift(safeStr(mt103.getSender()),
+      safeStr(mt103.getField53A().getBIC()),
+      safeStr(mt103.getField53D().getNameAndAddress()),
+      safeStr(mt103.getField59().getNameAndAddress()),
+      safeStr(mt103.getField57A().getBIC()),
+      safeStr(mt103.getField59F().getNameAndAddress1()),
+      safeStr(mt103.getField32A().getAmount()),
+      safeStr(mt103.getField32A().getCurrency()),
+      safeStr(mt103.getField70().getComponent1()),
+      getDirection(mt103))
   }
 
   def isMT103(swift: String) = {
