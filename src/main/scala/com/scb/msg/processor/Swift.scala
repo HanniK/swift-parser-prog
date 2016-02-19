@@ -2,38 +2,39 @@ package com.scb.msg.processor
 import com.prowidesoftware.swift.model.mt.mt1xx.MT103
 import com.prowidesoftware.swift.model.mt.AbstractMT
 import org.apache.commons.lang.exception.ExceptionUtils
+import org.apache.log4j.Logger
 
 case class Swift(msg_detail: String)
 
 object Swift {
+  val logger = Logger.getLogger(this.getClass())
 
   def convertSwift(swift: String): String = {
-    println(swift)
-    var message: AbstractMT = null
-    var processedStr: String = ""
-    try {
-      message = AbstractMT.parse(swift.replaceAll("\t", "\n"))
-      if (isValidMT103Message(message)) {
-        val mt103: MT103 = message.asInstanceOf[MT103]
-        println(mt103)
-        processedStr = parseMessageDetail(mt103, getDirection(mt103))
-      }
-    } catch {
-      case t: Throwable => println(" Unknown message or file format " + ExceptionUtils.getStackTrace(t));
-    }
-    processedStr
+    val mt103: MT103 = MT103.parse(swift.replaceAll("\t", "\n"))
+    parseMessageDetail(mt103, getDirection(mt103))
   }
 
-  def isValidMT103Message(message: com.prowidesoftware.swift.model.mt.AbstractMT) = {
+  def isMT103(swift: String) = {
+    try {
+      var message: AbstractMT = AbstractMT.parse(swift.replaceAll("\t", "\n"))
+      isValidMT103Message(message)
+    } catch {
+      case t: Throwable =>
+        logger.error(" Unknown message or file format " + ExceptionUtils.getStackTrace(t));
+        false
+    }
+  }
+
+  private def isValidMT103Message(message: com.prowidesoftware.swift.model.mt.AbstractMT) = {
     message != null && message.isType(103)
   }
 
-  def getDirection(mt103: com.prowidesoftware.swift.model.mt.mt1xx.MT103) = {
+  private def getDirection(mt103: com.prowidesoftware.swift.model.mt.mt1xx.MT103) = {
     val direction = if (mt103.isOutput()) "Output" else "Input"
     direction
   }
 
-  def parseMessageDetail(mt103: MT103, direction: String) = {
+  private def parseMessageDetail(mt103: MT103, direction: String) = {
     concat(safeStr(mt103.getSender()),
       safeStr(mt103.getField53A().getBIC()),
       safeStr(mt103.getField53D().getNameAndAddress()),
@@ -46,7 +47,7 @@ object Swift {
       direction)
   }
 
-  def safeStr(str: Object) = {
+  private def safeStr(str: Object) = {
     try {
       str.toString()
     } catch {
@@ -54,5 +55,5 @@ object Swift {
     }
   }
 
-  def concat(ss: String*) = ss filter (_.nonEmpty) mkString "\t "
+  private def concat(ss: String*) = ss filter (_.nonEmpty) mkString "\t "
 }

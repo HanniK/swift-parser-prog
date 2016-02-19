@@ -44,7 +44,7 @@ object SparkStreamH {
     import hiveContext.sql
 
     dataStream.foreachRDD { rdd =>
-      rdd.map(Swift.convertSwift).toDF().registerTempTable("records")
+      rdd.filter(Swift.isMT103).map(Swift.convertSwift).toDF().registerTempTable("records")
       sql("INSERT INTO table cers.fine_grain_swift select r.* from records r ")
     }
 
