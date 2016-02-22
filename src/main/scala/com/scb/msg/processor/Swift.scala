@@ -42,20 +42,6 @@ object Swift {
     val direction = if (mt103.isOutput()) "Output" else "Input"
     direction
   }
-
-  private def parseMessageDetail(mt103: MT103, direction: String) = {
-    concat(safeStr(mt103.getSender()),
-      safeStr(mt103.getField53A().getBIC()),
-      safeStr(mt103.getField53D().getNameAndAddress()),
-      safeStr(mt103.getField59().getNameAndAddress()),
-      safeStr(mt103.getField57A().getBIC()),
-      safeStr(mt103.getField59F().getNameAndAddress1()),
-      safeStr(mt103.getField32A().getAmount()),
-      safeStr(mt103.getField32A().getCurrency()),
-      safeStr(mt103.getField70().getComponent1()),
-      direction)
-  }
-
   private def safeStr(str: Object) = {
     try {
       str.toString()
